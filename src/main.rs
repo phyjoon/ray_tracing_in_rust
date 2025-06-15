@@ -1,26 +1,42 @@
 use std::env;
+use std::io::{self, Write};
 
-fn output_ppm_image(image_width: usize, image_height: usize) -> String {
+fn output_ppm_image<W: Write, E: Write>(
+    out: &mut W,
+    err: &mut E,
+    image_width: usize,
+    image_height: usize,
+) -> io::Result<()> {
     // Section 2.1 of `RayTracingInOneWeekend`
     // Generate a PPM image with a gradient from black
-    let mut image_data = String::new();
-    image_data.push_str("P3\n");
-    image_data.push_str(&format!("{} {}\n", image_width, image_height));
-    image_data.push_str("255\n");
+
+    writeln!(
+        err,
+        "Generating PPM image with dimensions {}x{}...",
+        image_width, image_height
+    )?;
+
+    write!(out, "P3\n")?;
+    write!(out, "{} {}\n", image_width, image_height)?;
+    write!(out, "255\n")?;
 
     for j in 0..image_height {
         for i in 0..image_width {
+            write!(err, "\rScanlines remaining: {:5}", image_height - j)?;
+
             let r = (i as f64) / (image_width as f64 - 1.0);
             let g = (j as f64) / (image_height as f64 - 1.0);
             let b = 0.0;
 
             let [ir, ig, ib] = [r, g, b].map(|c| (255.999 * c).floor() as u8);
 
-            image_data.push_str(&format!("{} {} {}\n", ir, ig, ib));
+            write!(out, "{} {} {}\n", ir, ig, ib)?;
         }
     }
 
-    image_data
+    writeln!(err, "\nPPM image generation complete.")?;
+
+    Ok(())
 }
 
 fn main() {
@@ -36,5 +52,11 @@ fn main() {
         panic!("Please provide two arguments for image width and height.");
     };
 
-    println!("{}", output_ppm_image(image_width, image_height));
+    let stdout = io::stdout();
+    let stderr = io::stderr();
+    let mut out = stdout.lock();
+    let mut err = stderr.lock();
+
+    output_ppm_image(&mut out, &mut err, image_width, image_height)
+        .expect("Failed to generate PPM image.");
 }
