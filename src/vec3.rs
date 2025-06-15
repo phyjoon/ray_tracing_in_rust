@@ -5,7 +5,7 @@ use std::{
 
 // Section 3 of `RayTracingInOneWeekend`
 // Represents a 3D vector with x, y, and z components.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Vec3 {
@@ -22,10 +22,10 @@ impl Vec3 {
         self.2
     }
     pub fn length(&self) -> f64 {
-        Vec3::dot(&self, &self)
+        Vec3::dot(&self, &self).sqrt()
     }
     pub fn length_squared(&self) -> f64 {
-        Vec3::dot(&self, &self).sqrt()
+        Vec3::dot(&self, &self)
     }
     pub fn dot(&self, other: &Vec3) -> f64 {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
