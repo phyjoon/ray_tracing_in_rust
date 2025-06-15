@@ -1,5 +1,9 @@
+pub mod color;
+pub mod vec3;
+use color::write_color;
 use std::env;
 use std::io::{self, Write};
+use vec3::Vec3;
 
 fn output_ppm_image<W: Write, E: Write>(
     out: &mut W,
@@ -24,13 +28,13 @@ fn output_ppm_image<W: Write, E: Write>(
         for i in 0..image_width {
             write!(err, "\rScanlines remaining: {:5}", image_height - j)?;
 
-            let r = (i as f64) / (image_width as f64 - 1.0);
-            let g = (j as f64) / (image_height as f64 - 1.0);
-            let b = 0.0;
+            let color = Vec3::new(
+                (i as f64) / (image_width as f64 - 1.0),
+                (j as f64) / (image_height as f64 - 1.0),
+                0.0,
+            );
 
-            let [ir, ig, ib] = [r, g, b].map(|c| (255.999 * c).floor() as u8);
-
-            write!(out, "{} {} {}\n", ir, ig, ib)?;
+            write_color(out, &color)?;
         }
     }
 
